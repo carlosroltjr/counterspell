@@ -20,3 +20,9 @@ model Player {
   mainHeroes String[]
   searchHistory String[]
 }
+
+model Matches {
+  id Int @default(autoincrement()) @id
+  lowestMatchId String
+  data Json
+}
