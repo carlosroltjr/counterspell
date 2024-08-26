@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
+import { Cron } from '@nestjs/schedule'
 import { PrismaService } from './database/prisma.service'
 
 @Injectable()
@@ -10,14 +10,14 @@ export class AppService {
   ) {}
 
   private readonly logger = new Logger(AppService.name)
-  private readonly maxRequestsPerDay: number = 2000
+  private readonly maxRequestsPerDay: number = 5
   private startingMatchIdValue: number
 
   getHello (): string {
     return 'Hello World!'
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron('*/2 * * * *')
   async saveMatches () {
     this.logger.log('Starting data extract stage...')
     let remainingRequests = this.maxRequestsPerDay
