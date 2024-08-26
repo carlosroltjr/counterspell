@@ -15,5 +15,6 @@ datasource db {
 
 model Matches {
   id Int @default(autoincrement()) @id
+  matchesDay DateTime
   data Json
 }
