@@ -10,17 +10,18 @@ export class AppService {
   ) {}
 
   private readonly logger = new Logger(AppService.name)
-  private readonly maxRequestsPerDay = 20000
+  private readonly maxRequestsPerDay: number = 2000
+  private startingMatchIdValue: number
 
   getHello (): string {
     return 'Hello World!'
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async getMatches () {
-    this.logger.debug('Starting matches data gathering...')
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async saveMatches () {
+    this.logger.log('Starting data extract stage...')
     let remainingRequests = this.maxRequestsPerDay
-    let lowestMatchId = Number(process.env.VERY_BIG_NUMBER)
+    let lowestMatchId = this.startingMatchIdValue || 999999999999
     while (remainingRequests > 0) {
       const openDotaMatches = await this.httpService.axiosRef.get(
         process.env.OPEN_DOTA_BASE_URL + '/publicMatches',
@@ -33,16 +34,16 @@ export class AppService {
         }
       })
 
-      this.logger.debug('Saving matches...')
       await this.prisma.matches.create({
-        data: {
-          data: openDotaMatches.data
-        }
+        data: { data: openDotaMatches.data }
+      }).then(matches => {
+        this.logger.log(`Saved matches[] with id ${matches.id} to database...`)
       })
 
       remainingRequests--
       this.logger.debug(`Remaining requests: ${remainingRequests}.`)
-      await new Promise<void>(resolve => setTimeout(() => resolve(), 5000))
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 1000))
     }
+    this.startingMatchIdValue = lowestMatchId
   }
 }
