@@ -41,7 +41,7 @@ export class AppService {
       })
 
       const matchesDay: Date = new Date(
-        openDotaMatches.data[0].start_time * 1000
+        filteredMatches[0].start_time * 1000
       )
       await this.prisma.matches
         .create({
