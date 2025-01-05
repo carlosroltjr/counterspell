@@ -11,7 +11,7 @@ export class AppService {
   ) {}
 
   private readonly logger = new Logger(AppService.name)
-  private readonly maxRequestsPerDay: number = 2000
+  private readonly maxRequestsPerDay: number = 50 // testing with small amount of requests
   private startingMatchIdValue: number
 
   getHello (): string {
@@ -34,27 +34,29 @@ export class AppService {
           match.lobby_type === 5 || match.lobby_type === 6
       )
 
-      filteredMatches.forEach((match: { match_id: number }) => {
-        if (lowestMatchId > match.match_id) {
-          lowestMatchId = match.match_id
-        }
-      })
-
-      const matchesDay: Date = new Date(
-        filteredMatches[0].start_time * 1000
-      )
-      await this.prisma.matches
-        .create({
-          data: {
-            matchesDay,
-            data: filteredMatches
+      if (filteredMatches.length !== 0) {
+        filteredMatches.forEach((match: { match_id: number }) => {
+          if (lowestMatchId > match.match_id) {
+            lowestMatchId = match.match_id
           }
         })
-        .then((matches) => {
-          this.logger.log(
-            `Saved matches[] with id ${matches.id} to database...`
-          )
-        })
+
+        const matchesDay: Date = new Date(
+          filteredMatches[0].start_time * 1000
+        )
+        await this.prisma.matches
+          .create({
+            data: {
+              matchesDay,
+              data: filteredMatches
+            }
+          })
+          .then((matches) => {
+            this.logger.log(
+              `Saved matches[] with id ${matches.id} to database...`
+            )
+          })
+      }
 
       remainingRequests--
       this.logger.debug(`Remaining requests: ${remainingRequests}.`)
